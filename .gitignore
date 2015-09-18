@@ -1,0 +1,17 @@
+*~
+*.o
+.deps
+aclocal.m4
+autom4te.cache
+config.log
+config.status
+configure
+depcomp
+install-sh
+src/lwcored/cmdswitch.cpp
+src/lwcored/cmdswitch.h
+src/lwcored/lwcored
+missing
+Makefile
+Makefile.in
+moc_*
