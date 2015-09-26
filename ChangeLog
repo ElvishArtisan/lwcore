@@ -2,3 +2,5 @@
 	* Initial package creation.
 2015-09-26 Fred Gleason <fredg@paravelsystems.com>
 	* Implemented basic audio i/o in the 'AudioQueue' class.
+2015-09-26 Fred Gleason <fredg@paravelsystems.com>
+	* Added SoundTouch and Secre Rabbit Code dependencies.

@@ -71,6 +71,11 @@ PKG_CHECK_MODULES(ALSA,alsa,[],[AC_MSG_ERROR([*** ALSA not found ***])])
 PKG_CHECK_MODULES(SOUNDTOUCH,soundtouch,[],[AC_MSG_ERROR([*** SoundTouch not found ***])])
 
 #
+# Check for libsamplerate
+#
+PKG_CHECK_MODULES(SAMPLERATE,samplerate,[],[AC_MSG_ERROR([*** libsamplerate not found ***])])
+
+#
 # Determine the target architecture
 #
 AR_GCC_TARGET()

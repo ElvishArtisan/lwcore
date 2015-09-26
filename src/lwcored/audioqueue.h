@@ -31,9 +31,10 @@
 #include <alsa/asoundlib.h>
 
 #define QUEUE_CHANNELS 2
-#define QUEUE_PERIOD_SIZE 960
+#define QUEUE_PERIOD_SIZE 960  // Frames
 #define QUEUE_PERIOD_QUAN 2
 #define QUEUE_SHM_KEY_BASE_KEY 
+#define QUEUE_MAX_DELAY 60     // Seconds
 #define ALSA_CHANNELS 2
 #define ALSA_SAMPRATE 48000
 #define ALSA_FORMAT S32_LE
@@ -46,6 +47,7 @@ struct LwShm {
   snd_pcm_t *playout_pcm;
   int pcm[QUEUE_CHANNELS*QUEUE_PERIOD_SIZE*QUEUE_PERIOD_QUAN];
   unsigned period;
+  unsigned delay;   // In frames
   bool exiting;
 };
 

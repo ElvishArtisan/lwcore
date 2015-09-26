@@ -20,7 +20,7 @@
 ##
 ## Use automake to process this into a Makefile.in
 
-AM_CPPFLAGS = -Wall -DPREFIX=\"$(prefix)\" -Wno-strict-aliasing @QT4_CFLAGS@ @ALSA_CFLAGS@
+AM_CPPFLAGS = -Wall -DPREFIX=\"$(prefix)\" -Wno-strict-aliasing @QT4_CFLAGS@ @ALSA_CFLAGS@ @SAMPLERATE_CFLAGS@ @SOUNDTOUCH_CFLAGS@
 MOC = @QT4_MOC@
 
 # The dependency for qt's Meta Object Compiler (moc)
@@ -33,13 +33,14 @@ sbin_PROGRAMS = lwcored
 dist_lwcored_SOURCES = audioqueue.cpp qaudioqueue.h\
                        capture.cpp\
                        lwcored.cpp lwcored.h\
-                       playout.cpp
+                       playout.cpp\
+                       ringbuffer.cpp ringbuffer.h
 
 nodist_lwcored_SOURCES = cmdswitch.cpp cmdswitch.h\
                          moc_audioqueue.cpp\
                          moc_lwcored.cpp
 
-lwcored_LDADD = @ALSA_LIBS@ -lQtCore -lQtNetwork
+lwcored_LDADD = @ALSA_LIBS@ @SOUNDTOUCH_LIBS@ @SAMPLERATE_LIBS@ -lQtCore -lQtNetwork
 lwcored_LDFLAGS = 
 
 CLEANFILES = *~\

@@ -22,7 +22,11 @@
 #include <sched.h>
 #include <syslog.h>
 
+#include <samplerate.h>
+#include <soundtouch/SoundTouch.h>
+
 #include "audioqueue.h"
+#include "ringbuffer.h"
 
 bool AudioQueue::StartCaptureDevice(const QString &dev)
 {
@@ -95,15 +99,42 @@ bool AudioQueue::StartCaptureDevice(const QString &dev)
 void AudioQueue::RunCapture(LwShm *shm)
 {
   snd_pcm_sframes_t n;
+  Ringbuffer *ring=
+    new Ringbuffer(QUEUE_MAX_DELAY*ALSA_SAMPRATE,QUEUE_CHANNELS);
+  int pcm32[QUEUE_PERIOD_SIZE*QUEUE_CHANNELS];
+  float pcm[QUEUE_PERIOD_SIZE*QUEUE_CHANNELS];
+  soundtouch::SoundTouch *st=new soundtouch::SoundTouch();
+
+  st->setSampleRate(ALSA_SAMPRATE);
+  st->setChannels(QUEUE_CHANNELS);
+  st->setRateChange(0.0);
 
   while(!shm->exiting) {
-    n=snd_pcm_readi(shm->capture_pcm,shm->pcm+PCM_OFFSET(shm->period),240);
+    if(ring->readSpace()<shm->delay) {
+      st->setTempoChange(-20.0);
+    }
+    else {
+      st->setTempoChange(0.0);
+    }
+    n=snd_pcm_readi(shm->capture_pcm,pcm32,240);
     if((n<0)&&(snd_pcm_state(shm->capture_pcm)!=SND_PCM_STATE_RUNNING)&&
        (!shm->exiting)) {  // Recover from an xrun
       snd_pcm_drop(shm->capture_pcm);
       snd_pcm_prepare(shm->capture_pcm);
     }
     else {
+      src_int_to_float_array(pcm32,pcm,n*QUEUE_CHANNELS);
+ 
+      st->putSamples(pcm,n);
+      n=st->receiveSamples(pcm,QUEUE_PERIOD_SIZE);
+
+      ring->write(pcm,n);
+      memset(pcm,0,sizeof(float)*QUEUE_PERIOD_SIZE*QUEUE_CHANNELS);
+      if(ring->readSpace()>=240) {  // Mute it until we have enough to start
+	ring->read(pcm,240);
+      }
+      src_float_to_int_array(pcm,shm->pcm+PCM_OFFSET(shm->period),
+			     240*QUEUE_CHANNELS);
       shm->period++;
     }
   }

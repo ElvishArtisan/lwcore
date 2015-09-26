@@ -28,7 +28,7 @@
 
 #include "audioqueue.h"
 
-#define LWCORED_SLOT_QUAN 2
+#define LWCORED_SLOT_QUAN 1
 #define LWCORED_USAGE "[options]\n"
 
 class MainObject : public QObject
