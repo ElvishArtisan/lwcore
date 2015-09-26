@@ -21,8 +21,14 @@
 #ifndef LWCORED_H
 #define LWCORED_H
 
-#include <QObject>
+#include <vector>
 
+#include <QObject>
+#include <QTimer>
+
+#include "audioqueue.h"
+
+#define LWCORED_SLOT_QUAN 2
 #define LWCORED_USAGE "[options]\n"
 
 class MainObject : public QObject
@@ -30,6 +36,18 @@ class MainObject : public QObject
  Q_OBJECT;
  public:
   MainObject(QObject *parent=0);
+
+ private slots:
+  void stopTimerData();
+  void stoppedData(unsigned slot);
+
+ private:
+  bool InitShmSegment();
+  std::vector<AudioQueue *> main_queues;
+  QTimer *main_exit_timer;
+  int main_stopped_queues;
+  LwShm *main_shm;
+  int main_shm_id;
 };
 
 

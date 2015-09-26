@@ -30,10 +30,14 @@ moc_%.cpp:	%.h
 
 sbin_PROGRAMS = lwcored
 
-dist_lwcored_SOURCES = lwcored.cpp lwcored.h
+dist_lwcored_SOURCES = audioqueue.cpp qaudioqueue.h\
+                       capture.cpp\
+                       lwcored.cpp lwcored.h\
+                       playout.cpp
 
 nodist_lwcored_SOURCES = cmdswitch.cpp cmdswitch.h\
-                            moc_lwcored.cpp
+                         moc_audioqueue.cpp\
+                         moc_lwcored.cpp
 
 lwcored_LDADD = @ALSA_LIBS@ -lQtCore -lQtNetwork
 lwcored_LDFLAGS = 

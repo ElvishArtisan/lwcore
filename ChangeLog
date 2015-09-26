@@ -1,3 +1,4 @@
 2015-09-18 Fred Gleason <fredg@paravelsystems.com>
 	* Initial package creation.
-
+2015-09-26 Fred Gleason <fredg@paravelsystems.com>
+	* Implemented basic audio i/o in the 'AudioQueue' class.

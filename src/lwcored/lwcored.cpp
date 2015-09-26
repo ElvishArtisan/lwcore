@@ -18,13 +18,121 @@
 //   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 //
 
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
 #include <QCoreApplication>
 
 #include "lwcored.h"
 
+bool exiting=false;
+
+void SigHandler(int signo)
+{
+  switch(signo) {
+  case SIGINT:
+  case SIGTERM:
+    exiting=true;
+    break;
+
+  case SIGCHLD:
+    waitpid(-1,NULL,WNOHANG);
+    break;
+  }
+}
+
+
 MainObject::MainObject(QObject *parent)
   : QObject(parent)
 {
+  //
+  // Create Shared Memory Segment
+  //
+  main_shm=NULL;
+  main_shm_id=-1;
+  if(!InitShmSegment()) {
+    fprintf(stderr,"lwcored: unable to create shared memory segment\n");
+    exit(256);
+  }
+
+  //
+  // Start Queues
+  //
+  for(int i=0;i<LWCORED_SLOT_QUAN;i++) {
+    main_queues.push_back(new AudioQueue(main_shm_id,i,this));
+    connect(main_queues.back(),SIGNAL(stopped(unsigned)),
+	    SLOT(stoppedData(unsigned)));
+    QString dev=QString().sprintf("hw:Axia,%d",i);
+    if(!main_queues.back()->start(dev)) {
+	fprintf(stderr,"lwcored: unable to start device %s\n",
+		(const char *)dev.toUtf8());
+      exit(256);
+    }
+  }
+
+  //
+  // Exit Timer
+  //
+  main_stopped_queues=0;
+  main_exit_timer=new QTimer(this);
+  connect(main_exit_timer,SIGNAL(timeout()),this,SLOT(stopTimerData()));
+  main_exit_timer->start(1000);
+}
+
+
+void MainObject::stopTimerData()
+{
+  if(exiting) {
+    for(int i=0;i<LWCORED_SLOT_QUAN;i++) {
+      main_queues[i]->stop();
+    }
+  }
+}
+
+
+void MainObject::stoppedData(unsigned slot)
+{
+  if(++main_stopped_queues==LWCORED_SLOT_QUAN) {
+    shmctl(main_shm_id,IPC_RMID,NULL);
+    exit(0);
+  }
+}
+
+
+bool MainObject::InitShmSegment()
+{
+  struct shmid_ds shmid_ds;
+
+  /*
+   * First try to create a new shared memory segment.
+   */
+  if((main_shm_id=
+      shmget(IPC_PRIVATE,sizeof(struct LwShm)*LWCORED_SLOT_QUAN,
+	     IPC_CREAT|IPC_EXCL|S_IRUSR|S_IWUSR|
+	     S_IRGRP|S_IWUSR|S_IROTH|S_IWOTH))<0) {
+    if(errno!=EEXIST) {
+      return false;
+    }
+    /*
+     * The shmget() error was due to an existing segment, so try to get it,
+     *  release it, and re-get it.
+     */
+    main_shm_id=shmget(IPC_PRIVATE,sizeof(struct LwShm)*LWCORED_SLOT_QUAN,0);
+    shmctl(main_shm_id,IPC_RMID,NULL);
+    if((main_shm_id=shmget(IPC_PRIVATE,sizeof(struct LwShm)*LWCORED_SLOT_QUAN,
+			   IPC_CREAT|IPC_EXCL|S_IRUSR|S_IWUSR|
+			   S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))<0) {
+      return false;
+    }
+  }
+  shmctl(main_shm_id,IPC_STAT,&shmid_ds);
+  shmid_ds.shm_perm.uid=getuid();
+  shmctl(main_shm_id,IPC_SET,&shmid_ds);
+  main_shm=(struct LwShm *)shmat(main_shm_id,NULL,0);
+  memset(main_shm,0,sizeof(struct LwShm)*LWCORED_SLOT_QUAN);
+
+  return true;
 }
 
 
