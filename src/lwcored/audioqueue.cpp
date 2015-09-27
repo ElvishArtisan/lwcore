@@ -36,6 +36,14 @@ AudioQueue::AudioQueue(int shm_id,unsigned slot,QObject *parent)
 
   queue_shm=(struct LwShm *)shmat(shm_id,NULL,0);
 
+  //
+  // Timers
+  //
+  queue_current_length=0;
+  queue_update_timer=new QTimer(this);
+  connect(queue_update_timer,SIGNAL(timeout()),this,SLOT(updateData()));
+  queue_update_timer->start(QUEUE_UPDATE_INTERVAL);
+
   queue_stop_timer=new QTimer(this);
   connect(queue_stop_timer,SIGNAL(timeout()),this,SLOT(stopData()));
 }
@@ -65,6 +73,53 @@ void AudioQueue::stop()
 {
   queue_shm->exiting=true;
   queue_stop_timer->start(100);
+}
+
+
+unsigned AudioQueue::length() const
+{
+  return (queue_shm+queue_slot)->delay;
+}
+
+
+void AudioQueue::setLength(unsigned frames)
+{
+  (queue_shm+queue_slot)->set_delay=frames;
+  queue_current_length=frames;
+}
+
+
+unsigned AudioQueue::maxLength() const
+{
+  return (queue_shm+queue_slot)->set_max_delay;
+}
+
+
+void AudioQueue::setMaxLength(unsigned frames)
+{
+  (queue_shm+queue_slot)->set_max_delay=frames;
+}
+
+
+float AudioQueue::maxTempoOffset() const
+{
+  return (queue_shm+queue_slot)->set_max_offset;
+}
+
+
+void AudioQueue::setMaxTempoOffset(float offset)
+{
+  (queue_shm+queue_slot)->set_max_offset=offset;
+}
+
+
+void AudioQueue::updateData()
+{
+  //  if(abs((int)queue_current_length-(int)length())>(ALSA_SAMPRATE/10)) {
+  if(queue_current_length!=length()) {
+    queue_current_length=length();
+    emit lengthChanged(queue_slot,queue_current_length);
+  }
 }
 
 

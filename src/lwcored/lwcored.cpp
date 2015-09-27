@@ -61,8 +61,10 @@ MainObject::MainObject(QObject *parent)
   //
   for(int i=0;i<LWCORED_SLOT_QUAN;i++) {
     main_queues.push_back(new AudioQueue(main_shm_id,i,this));
+    connect(main_queues.back(),SIGNAL(lengthChanged(unsigned,unsigned)),
+	    this,SLOT(lengthChangedData(unsigned,unsigned)));
     connect(main_queues.back(),SIGNAL(stopped(unsigned)),
-	    SLOT(stoppedData(unsigned)));
+	    this,SLOT(stoppedData(unsigned)));
     QString dev=QString().sprintf("hw:Axia,%d",i);
     if(!main_queues.back()->start(dev)) {
 	fprintf(stderr,"lwcored: unable to start device %s\n",
@@ -72,12 +74,27 @@ MainObject::MainObject(QObject *parent)
   }
 
   //
+  // LWCP Server
+  //
+  main_lwcp_server=new LwcpServer(this);
+
+  //
   // Exit Timer
   //
   main_stopped_queues=0;
   main_exit_timer=new QTimer(this);
   connect(main_exit_timer,SIGNAL(timeout()),this,SLOT(stopTimerData()));
   main_exit_timer->start(1000);
+  /*
+  main_queues[0]->setMaxTempoOffset(0.1);
+  main_queues[0]->setMaxLength(480000);
+  */
+}
+
+
+void MainObject::lengthChangedData(unsigned slot,unsigned frames)
+{
+  //  printf("lengthChangedData(%u,%u)\n",slot,frames);
 }
 
 

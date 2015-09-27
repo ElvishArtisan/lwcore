@@ -31,10 +31,11 @@
 #include <alsa/asoundlib.h>
 
 #define QUEUE_CHANNELS 2
-#define QUEUE_PERIOD_SIZE 960  // Frames
+#define QUEUE_PERIOD_SIZE 960       // Frames
 #define QUEUE_PERIOD_QUAN 2
 #define QUEUE_SHM_KEY_BASE_KEY 
-#define QUEUE_MAX_DELAY 60     // Seconds
+#define QUEUE_MAX_DELAY 60          // Seconds
+#define QUEUE_UPDATE_INTERVAL 1000  // Milliseconds
 #define ALSA_CHANNELS 2
 #define ALSA_SAMPRATE 48000
 #define ALSA_FORMAT S32_LE
@@ -49,6 +50,9 @@ struct LwShm {
   unsigned period;
   unsigned delay;   // In frames
   bool exiting;
+  unsigned set_delay;
+  unsigned set_max_delay;
+  float set_max_offset;
 };
 
 class AudioQueue : public QObject
@@ -59,11 +63,19 @@ class AudioQueue : public QObject
   ~AudioQueue();
   bool start(const QString &dev);
   void stop();
+  unsigned length() const;
+  void setLength(unsigned frames);
+  unsigned maxLength() const;
+  void setMaxLength(unsigned frames);
+  float maxTempoOffset() const;
+  void setMaxTempoOffset(float offset);
 
  signals:
+  void lengthChanged(unsigned slot,unsigned frames);
   void stopped(unsigned slot);
 
  private slots:
+  void updateData();
   void stopData();
 
  private:
@@ -78,6 +90,8 @@ class AudioQueue : public QObject
   QString queue_device;
   bool queue_capture_running;
   bool queue_playout_running;
+  QTimer *queue_update_timer;
+  unsigned queue_current_length;
   QTimer *queue_stop_timer;
 };
 

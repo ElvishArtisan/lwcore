@@ -1,6 +1,6 @@
-// lwcored.h
+// lwcpserver.h
 //
-// lwcored(8) facility router daemon
+// LWCP Server for lwcore.
 //
 //   (C) Copyright 2015 Fred Gleason <fredg@paravelsystems.com>
 //
@@ -18,40 +18,23 @@
 //   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 //
 
-#ifndef LWCORED_H
-#define LWCORED_H
+#ifndef LWCPSERVER_H
+#define LWCPSERVER_H
 
-#include <vector>
+#include "netserver.h"
 
-#include <QObject>
-#include <QTimer>
+#define LWCORESERVER_PORT 4010
 
-#include "audioqueue.h"
-#include "lwcpserver.h"
-
-#define LWCORED_SLOT_QUAN 1
-#define LWCORED_USAGE "[options]\n"
-
-class MainObject : public QObject
+class LwcpServer : public NetServer
 {
  Q_OBJECT;
  public:
-  MainObject(QObject *parent=0);
+  LwcpServer(QObject *parent=0);
+  ~LwcpServer();
 
- private slots:
-  void lengthChangedData(unsigned slot,unsigned frames);
-  void stopTimerData();
-  void stoppedData(unsigned slot);
-
- private:
-  bool InitShmSegment();
-  std::vector<AudioQueue *> main_queues;
-  LwcpServer *main_lwcp_server;
-  QTimer *main_exit_timer;
-  int main_stopped_queues;
-  LwShm *main_shm;
-  int main_shm_id;
+ protected:
+  void processCommand(int id,const QString &cmd);
 };
 
 
-#endif  // LWCORED_H
+#endif  // LWCPSERVER_H

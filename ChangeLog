@@ -3,4 +3,9 @@
 2015-09-26 Fred Gleason <fredg@paravelsystems.com>
 	* Implemented basic audio i/o in the 'AudioQueue' class.
 2015-09-26 Fred Gleason <fredg@paravelsystems.com>
-	* Added SoundTouch and Secre Rabbit Code dependencies.
+	* Added SoundTouch and Secret Rabbit Code dependencies.
+2015-09-27 Fred Gleason <fredg@paravelsystems.com>
+	* Added a 'NetServer' class in 'src/lwcored/netserver.cpp' and
+	'src/lwcored/netserver.h'.
+	* Added a 'LwcpServer' class in 'src/lwcored/lwcpserver.cpp' and
+	'src/lwcored/lwcpserver.h'.

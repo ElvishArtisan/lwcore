@@ -110,12 +110,15 @@ void AudioQueue::RunCapture(LwShm *shm)
   st->setRateChange(0.0);
 
   while(!shm->exiting) {
-    if(ring->readSpace()<shm->delay) {
-      st->setTempoChange(-20.0);
+    shm->delay=ring->readSpace();
+    /*
+    if(delay<shm->set_max_delay) {
+      st->setTempoChange(-100.0*shm->set_max_offset);
     }
     else {
       st->setTempoChange(0.0);
     }
+    */
     n=snd_pcm_readi(shm->capture_pcm,pcm32,240);
     if((n<0)&&(snd_pcm_state(shm->capture_pcm)!=SND_PCM_STATE_RUNNING)&&
        (!shm->exiting)) {  // Recover from an xrun

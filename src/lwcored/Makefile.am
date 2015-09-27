@@ -33,12 +33,16 @@ sbin_PROGRAMS = lwcored
 dist_lwcored_SOURCES = audioqueue.cpp qaudioqueue.h\
                        capture.cpp\
                        lwcored.cpp lwcored.h\
+                       lwcpserver.cpp lwcpserver.h\
+                       netserver.cpp netserver.h\
                        playout.cpp\
                        ringbuffer.cpp ringbuffer.h
 
 nodist_lwcored_SOURCES = cmdswitch.cpp cmdswitch.h\
                          moc_audioqueue.cpp\
-                         moc_lwcored.cpp
+                         moc_lwcored.cpp\
+                         moc_lwcpserver.cpp\
+                         moc_netserver.cpp
 
 lwcored_LDADD = @ALSA_LIBS@ @SOUNDTOUCH_LIBS@ @SAMPLERATE_LIBS@ -lQtCore -lQtNetwork
 lwcored_LDFLAGS = 
