@@ -115,7 +115,7 @@ void AudioQueue::setMaxTempoOffset(float offset)
 
 void AudioQueue::updateData()
 {
-  //  if(abs((int)queue_current_length-(int)length())>(ALSA_SAMPRATE/10)) {
+  //  if(abs((int)queue_current_length-(int)length())>(LWCORE_SAMPRATE/10)) {
   if(queue_current_length!=length()) {
     queue_current_length=length();
     emit lengthChanged(queue_slot,queue_current_length);
@@ -155,7 +155,7 @@ bool AudioQueue::SetAlsaParameters(snd_pcm_t *pcm,snd_pcm_hw_params_t *hwparams)
   //
   // Sample Rate
   //
-  if(snd_pcm_hw_params_set_rate(pcm,hwparams,ALSA_SAMPRATE,0)!=0) {
+  if(snd_pcm_hw_params_set_rate(pcm,hwparams,LWCORE_SAMPRATE,0)!=0) {
     syslog(LOG_ERR,tr("unsupported sample rate").toUtf8());
     return false;
   }
@@ -163,7 +163,7 @@ bool AudioQueue::SetAlsaParameters(snd_pcm_t *pcm,snd_pcm_hw_params_t *hwparams)
   //
   // Channels
   //
-  if(snd_pcm_hw_params_set_channels(pcm,hwparams,ALSA_CHANNELS)!=0) {
+  if(snd_pcm_hw_params_set_channels(pcm,hwparams,LWCORE_CHANNELS)!=0) {
     syslog(LOG_ERR,tr("unsupported channel count").toUtf8());
     return false;
   }
@@ -175,7 +175,8 @@ bool AudioQueue::SetAlsaParameters(snd_pcm_t *pcm,snd_pcm_hw_params_t *hwparams)
     syslog(LOG_ERR,tr("unsupported period quantity").toUtf8());
     return false;
   }
-  if(snd_pcm_hw_params_set_buffer_size(pcm,hwparams,240*ALSA_PERIOD_QUAN)!=0) {
+  if(snd_pcm_hw_params_set_buffer_size(pcm,hwparams,
+				       240*ALSA_PERIOD_QUAN)!=0) {
     syslog(LOG_ERR,tr("unsupported buffer size").toUtf8());
     return false;
   }

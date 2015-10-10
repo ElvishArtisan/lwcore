@@ -24,6 +24,7 @@
 
 #include <QCoreApplication>
 
+#include "lwcore.h"
 #include "lwcored.h"
 
 bool exiting=false;
@@ -57,12 +58,21 @@ MainObject::MainObject(QObject *parent)
   }
 
   //
+  // LWCP Server
+  //
+  main_lwcp_server=new LwcpServer(this);
+  connect(main_lwcp_server,SIGNAL(setDelay(unsigned,unsigned)),
+	  this,SLOT(lengthChangedData(unsigned,unsigned)));
+  connect(main_lwcp_server,SIGNAL(setMaxDelay(unsigned,unsigned)),
+	  this,SLOT(maxLengthChangedData(unsigned,unsigned)));
+
+  //
   // Start Queues
   //
-  for(int i=0;i<LWCORED_SLOT_QUAN;i++) {
+  for(int i=0;i<LWCORE_SLOT_QUAN;i++) {
     main_queues.push_back(new AudioQueue(main_shm_id,i,this));
     connect(main_queues.back(),SIGNAL(lengthChanged(unsigned,unsigned)),
-	    this,SLOT(lengthChangedData(unsigned,unsigned)));
+	    main_lwcp_server,SLOT(maxDelaySet(unsigned,unsigned)));
     connect(main_queues.back(),SIGNAL(stopped(unsigned)),
 	    this,SLOT(stoppedData(unsigned)));
     QString dev=QString().sprintf("hw:Axia,%d",i);
@@ -74,34 +84,33 @@ MainObject::MainObject(QObject *parent)
   }
 
   //
-  // LWCP Server
-  //
-  main_lwcp_server=new LwcpServer(this);
-
-  //
   // Exit Timer
   //
   main_stopped_queues=0;
   main_exit_timer=new QTimer(this);
   connect(main_exit_timer,SIGNAL(timeout()),this,SLOT(stopTimerData()));
   main_exit_timer->start(1000);
-  /*
-  main_queues[0]->setMaxTempoOffset(0.1);
-  main_queues[0]->setMaxLength(480000);
-  */
 }
 
 
 void MainObject::lengthChangedData(unsigned slot,unsigned frames)
 {
   //  printf("lengthChangedData(%u,%u)\n",slot,frames);
+  main_queues[slot]->setLength(frames);
+}
+
+
+void MainObject::maxLengthChangedData(unsigned slot,unsigned frames)
+{
+  main_queues[slot]->setMaxLength(frames);
+  main_lwcp_server->maxDelaySet(slot,frames);
 }
 
 
 void MainObject::stopTimerData()
 {
   if(exiting) {
-    for(int i=0;i<LWCORED_SLOT_QUAN;i++) {
+    for(int i=0;i<LWCORE_SLOT_QUAN;i++) {
       main_queues[i]->stop();
     }
   }
@@ -110,7 +119,7 @@ void MainObject::stopTimerData()
 
 void MainObject::stoppedData(unsigned slot)
 {
-  if(++main_stopped_queues==LWCORED_SLOT_QUAN) {
+  if(++main_stopped_queues==LWCORE_SLOT_QUAN) {
     shmctl(main_shm_id,IPC_RMID,NULL);
     exit(0);
   }
@@ -125,7 +134,7 @@ bool MainObject::InitShmSegment()
    * First try to create a new shared memory segment.
    */
   if((main_shm_id=
-      shmget(IPC_PRIVATE,sizeof(struct LwShm)*LWCORED_SLOT_QUAN,
+      shmget(IPC_PRIVATE,sizeof(struct LwShm)*LWCORE_SLOT_QUAN,
 	     IPC_CREAT|IPC_EXCL|S_IRUSR|S_IWUSR|
 	     S_IRGRP|S_IWUSR|S_IROTH|S_IWOTH))<0) {
     if(errno!=EEXIST) {
@@ -135,9 +144,9 @@ bool MainObject::InitShmSegment()
      * The shmget() error was due to an existing segment, so try to get it,
      *  release it, and re-get it.
      */
-    main_shm_id=shmget(IPC_PRIVATE,sizeof(struct LwShm)*LWCORED_SLOT_QUAN,0);
+    main_shm_id=shmget(IPC_PRIVATE,sizeof(struct LwShm)*LWCORE_SLOT_QUAN,0);
     shmctl(main_shm_id,IPC_RMID,NULL);
-    if((main_shm_id=shmget(IPC_PRIVATE,sizeof(struct LwShm)*LWCORED_SLOT_QUAN,
+    if((main_shm_id=shmget(IPC_PRIVATE,sizeof(struct LwShm)*LWCORE_SLOT_QUAN,
 			   IPC_CREAT|IPC_EXCL|S_IRUSR|S_IWUSR|
 			   S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))<0) {
       return false;
@@ -147,7 +156,7 @@ bool MainObject::InitShmSegment()
   shmid_ds.shm_perm.uid=getuid();
   shmctl(main_shm_id,IPC_SET,&shmid_ds);
   main_shm=(struct LwShm *)shmat(main_shm_id,NULL,0);
-  memset(main_shm,0,sizeof(struct LwShm)*LWCORED_SLOT_QUAN);
+  memset(main_shm,0,sizeof(struct LwShm)*LWCORE_SLOT_QUAN);
 
   return true;
 }

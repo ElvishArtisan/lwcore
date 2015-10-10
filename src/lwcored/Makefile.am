@@ -30,7 +30,8 @@ moc_%.cpp:	%.h
 
 sbin_PROGRAMS = lwcored
 
-dist_lwcored_SOURCES = audioqueue.cpp qaudioqueue.h\
+dist_lwcored_SOURCES = astring.cpp astring.h\
+                       audioqueue.cpp qaudioqueue.h\
                        capture.cpp\
                        lwcored.cpp lwcored.h\
                        lwcpserver.cpp lwcpserver.h\
@@ -50,7 +51,9 @@ lwcored_LDFLAGS =
 CLEANFILES = *~\
              moc_*
 
-DISTCLEANFILES = cmdswitch.cpp cmdswitch.h
+DISTCLEANFILES = astring.cpp astring.h\
+                 cmdswitch.cpp cmdswitch.h\
+                 lwcore.h
 
 MAINTAINERCLEANFILES = *~\
                        Makefile.in

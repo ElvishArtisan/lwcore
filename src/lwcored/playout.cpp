@@ -21,6 +21,7 @@
 #include <syslog.h>
 
 #include "audioqueue.h"
+#include "lwcore.h"
 
 bool AudioQueue::StartPlayoutDevice(const QString &dev)
 {
@@ -59,7 +60,7 @@ bool AudioQueue::StartPlayoutDevice(const QString &dev)
   snd_pcm_sw_params_alloca(&swparams);
   snd_pcm_sw_params_current(shm->playout_pcm,swparams);
   snd_pcm_sw_params_set_avail_min(shm->playout_pcm,swparams,
-				  ALSA_SAMPRATE/2);
+				  LWCORE_SAMPRATE/2);
   if((aerr=snd_pcm_sw_params(shm->playout_pcm,swparams))<0) {
     syslog(LOG_ERR,(tr("ALSA device error")+": "+snd_strerror(aerr)).toUtf8());
     snd_pcm_close(shm->playout_pcm);

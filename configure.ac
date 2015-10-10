@@ -106,6 +106,7 @@ else
 fi 
 
 AC_CONFIG_FILES([ \
+    docs/Makefile \
     src/common/Makefile \
     src/lwcored/Makefile \
     src/Makefile \
@@ -119,6 +120,14 @@ rm -f src/lwcored/cmdswitch.cpp
 ln -s ../../src/common/cmdswitch.cpp src/lwcored/cmdswitch.cpp
 rm -f src/lwcored/cmdswitch.h
 ln -s ../../src/common/cmdswitch.h src/lwcored/cmdswitch.h
+
+rm -f src/lwcored/astring.cpp
+ln -s ../../src/common/astring.cpp src/lwcored/astring.cpp
+rm -f src/lwcored/astring.h
+ln -s ../../src/common/astring.h src/lwcored/astring.h
+
+rm -f src/lwcored/lwcore.h
+ln -s ../../src/common/lwcore.h src/lwcored/lwcore.h
 
 AC_MSG_NOTICE()
 AC_MSG_NOTICE(Now enter 'make' to build the software.)

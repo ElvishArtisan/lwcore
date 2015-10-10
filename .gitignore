@@ -1,4 +1,6 @@
 *~
+*.7
+*.html
 *.o
 .deps
 aclocal.m4
@@ -8,8 +10,11 @@ config.status
 configure
 depcomp
 install-sh
+src/lwcored/astring.cpp
+src/lwcored/astring.h
 src/lwcored/cmdswitch.cpp
 src/lwcored/cmdswitch.h
+src/lwcored/lwcore.h
 src/lwcored/lwcored
 missing
 Makefile

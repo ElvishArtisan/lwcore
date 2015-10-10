@@ -29,7 +29,6 @@
 #include "audioqueue.h"
 #include "lwcpserver.h"
 
-#define LWCORED_SLOT_QUAN 1
 #define LWCORED_USAGE "[options]\n"
 
 class MainObject : public QObject
@@ -40,6 +39,7 @@ class MainObject : public QObject
 
  private slots:
   void lengthChangedData(unsigned slot,unsigned frames);
+  void maxLengthChangedData(unsigned slot,unsigned frames);
   void stopTimerData();
   void stoppedData(unsigned slot);
 

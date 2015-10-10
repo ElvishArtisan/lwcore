@@ -31,6 +31,8 @@
 #include <QTcpSocket>
 #include <QTimer>
 
+#include "astring.h"
+
 class NetConnection
 {
  public:
@@ -53,7 +55,7 @@ class NetServer : public QObject
   void send(const QString &cmd,int id=-1);
 
  protected:
-  virtual void processCommand(int id,const QString &cmd)=0;
+  virtual void processCommand(int id,const AString &cmd)=0;
 
  private slots:
   void newConnectionData();

@@ -21,6 +21,7 @@
 #ifndef LWCPSERVER_H
 #define LWCPSERVER_H
 
+#include "audioqueue.h"
 #include "netserver.h"
 
 #define LWCORESERVER_PORT 4010
@@ -32,8 +33,22 @@ class LwcpServer : public NetServer
   LwcpServer(QObject *parent=0);
   ~LwcpServer();
 
+ public slots:
+  void delaySet(unsigned slotnum,unsigned frames);
+  void maxDelaySet(unsigned slotnum,unsigned frames);
+
+ signals:
+  void setDelay(unsigned slotnum,unsigned frames);
+  void setMaxDelay(unsigned slotnum,unsigned frames);
+
  protected:
-  void processCommand(int id,const QString &cmd);
+  void processCommand(int id,const AString &cmd);
+
+ private:
+  QString SlotString(unsigned slotnum) const;
+  unsigned SlotValue(const QString &slot,bool *ok) const;
+  QString DelayString(unsigned frames) const;
+  unsigned DelayValue(const QString &str,bool *ok) const;
 };
 
 

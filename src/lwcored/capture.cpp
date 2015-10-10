@@ -26,6 +26,7 @@
 #include <soundtouch/SoundTouch.h>
 
 #include "audioqueue.h"
+#include "lwcore.h"
 #include "ringbuffer.h"
 
 bool AudioQueue::StartCaptureDevice(const QString &dev)
@@ -65,7 +66,7 @@ bool AudioQueue::StartCaptureDevice(const QString &dev)
   snd_pcm_sw_params_alloca(&swparams);
   snd_pcm_sw_params_current(shm->capture_pcm,swparams);
   snd_pcm_sw_params_set_avail_min(shm->capture_pcm,swparams,
-				  ALSA_SAMPRATE/2);
+				  LWCORE_SAMPRATE/2);
   if((aerr=snd_pcm_sw_params(shm->capture_pcm,swparams))<0) {
     syslog(LOG_ERR,(tr("ALSA device error")+": "+snd_strerror(aerr)).toUtf8());
     snd_pcm_close(shm->capture_pcm);
@@ -100,13 +101,13 @@ void AudioQueue::RunCapture(LwShm *shm)
 {
   snd_pcm_sframes_t n;
   Ringbuffer *ring=
-    new Ringbuffer(QUEUE_MAX_DELAY*ALSA_SAMPRATE,QUEUE_CHANNELS);
-  int pcm32[QUEUE_PERIOD_SIZE*QUEUE_CHANNELS];
-  float pcm[QUEUE_PERIOD_SIZE*QUEUE_CHANNELS];
+    new Ringbuffer(LWCORE_MAX_DELAY*LWCORE_SAMPRATE,LWCORE_CHANNELS);
+  int pcm32[QUEUE_PERIOD_SIZE*LWCORE_CHANNELS];
+  float pcm[QUEUE_PERIOD_SIZE*LWCORE_CHANNELS];
   soundtouch::SoundTouch *st=new soundtouch::SoundTouch();
 
-  st->setSampleRate(ALSA_SAMPRATE);
-  st->setChannels(QUEUE_CHANNELS);
+  st->setSampleRate(LWCORE_SAMPRATE);
+  st->setChannels(LWCORE_CHANNELS);
   st->setRateChange(0.0);
 
   while(!shm->exiting) {
@@ -126,18 +127,18 @@ void AudioQueue::RunCapture(LwShm *shm)
       snd_pcm_prepare(shm->capture_pcm);
     }
     else {
-      src_int_to_float_array(pcm32,pcm,n*QUEUE_CHANNELS);
+      src_int_to_float_array(pcm32,pcm,n*LWCORE_CHANNELS);
  
       st->putSamples(pcm,n);
       n=st->receiveSamples(pcm,QUEUE_PERIOD_SIZE);
 
       ring->write(pcm,n);
-      memset(pcm,0,sizeof(float)*QUEUE_PERIOD_SIZE*QUEUE_CHANNELS);
+      memset(pcm,0,sizeof(float)*QUEUE_PERIOD_SIZE*LWCORE_CHANNELS);
       if(ring->readSpace()>=240) {  // Mute it until we have enough to start
 	ring->read(pcm,240);
       }
       src_float_to_int_array(pcm,shm->pcm+PCM_OFFSET(shm->period),
-			     240*QUEUE_CHANNELS);
+			     240*LWCORE_CHANNELS);
       shm->period++;
     }
   }

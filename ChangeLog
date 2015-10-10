@@ -9,3 +9,6 @@
 	'src/lwcored/netserver.h'.
 	* Added a 'LwcpServer' class in 'src/lwcored/lwcpserver.cpp' and
 	'src/lwcored/lwcpserver.h'.
+2015-10-10 Fred Gleason <fredg@paravelsystems.com>
+	* Added 'docs/lwcore.xml.
+	* Implemented 'SET Delay' and 'SET Max_Delay' commands.
